@@ -76,7 +76,7 @@ const Login = () => {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, signInData.email, signInData.password);
-      navigate("/dashboard");
+      navigate("/profile");
     } catch {
       toast({ title: "Sign in failed", description: "Email or password is incorrect", variant: "destructive" });
     } finally {
@@ -101,7 +101,7 @@ const Login = () => {
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(auth, signUpData.email, signUpData.password);
-      navigate("/dashboard");
+      navigate("/profile");
     } catch (error) {
       const err = error as { code?: string; message?: string };
       if (err?.code === "auth/email-already-in-use") {
