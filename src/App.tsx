@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import VerifyEmail from "./pages/VerifyEmail";
 
 const queryClient = new QueryClient();
 
@@ -20,13 +21,17 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
+  if (!user.emailVerified) return <Navigate to="/verify-email" state={{ email: user.email }} replace />;
   return <>{children}</>;
 };
 
 const AuthRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   if (loading) return null;
-  if (user) return <Navigate to="/profile" replace />;
+  if (user) {
+    if (!user.emailVerified) return <Navigate to="/verify-email" state={{ email: user.email }} replace />;
+    return <Navigate to="/profile" replace />;
+  }
   return <>{children}</>;
 };
 
@@ -44,6 +49,7 @@ const App = () => (
             <Route path="/faqs" element={<FAQs />} />
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />

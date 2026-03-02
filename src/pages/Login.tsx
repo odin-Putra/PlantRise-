@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -75,7 +75,12 @@ const Login = () => {
     }
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, signInData.email, signInData.password);
+      const userCredential = await signInWithEmailAndPassword(auth, signInData.email, signInData.password);
+      if (!userCredential.user.emailVerified) {
+        await signOut(auth);
+        navigate("/verify-email", { state: { email: signInData.email } });
+        return;
+      }
       navigate("/profile");
     } catch {
       toast({ title: "Sign in failed", description: "Email or password is incorrect", variant: "destructive" });
@@ -100,8 +105,10 @@ const Login = () => {
     }
     setLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, signUpData.email, signUpData.password);
-      navigate("/profile");
+      const userCredential = await createUserWithEmailAndPassword(auth, signUpData.email, signUpData.password);
+      await sendEmailVerification(userCredential.user);
+      await signOut(auth);
+      navigate("/verify-email", { state: { email: signUpData.email } });
     } catch (error) {
       const err = error as { code?: string; message?: string };
       if (err?.code === "auth/email-already-in-use") {
